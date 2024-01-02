@@ -15,15 +15,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Test {
-    static Map<String,String> rowMap;
+public class SmartsheetDateUtil {
+    static Map<String, String> rowMap;
 
-    static Map<String,String> columnMap = new LinkedHashMap<String, String>();
-    static Map<String,Map<String,String>> taskMap = new LinkedHashMap<String, Map<String,String>>();
+    static Map<String, String> columnMap = new LinkedHashMap<String, String>();
+    static Map<String, Map<String, String>> taskMap = new LinkedHashMap<String, Map<String, String>>();
 
     static LinkedHashMap<String, Map<String, Map<String, String>>> finalMap = new LinkedHashMap<String, Map<String, Map<String, String>>>();
-
-
 
 
     public static void main(String[] args) {
@@ -48,14 +46,8 @@ public class Test {
             long startColumnId = 6833348002402180L;
             long finishColumnId = 1203848468189060L;
 
-            /* 4581548188716932 : Task Name
-            2329748375031684 : Duration
-            6833348002402180 : Start
-            1203848468189060 : Finish*/
 
-
-
-               System.out.println("Map data : "+getLastRecord(sheet));
+            System.out.println("Map data : " + getLastRecord(sheet));
 
                  /*Row row = smartsheet.sheetResources().rowResources().getRow(sheetId, targetRowId, null, null);
 
@@ -139,73 +131,56 @@ public class Test {
         }
 
     }
-        public static void printIndentData(Sheet sheet, Smartsheet smartsheet, long sheetId) throws SmartsheetException {
-            try {
-                // Get the sheet
 
-                if (sheet != null) {
-                    System.out.println("Sheet Name: " + sheet.getName());
+    public static void printIndentData(Sheet sheet, Smartsheet smartsheet, long sheetId) throws SmartsheetException {
+        try {
+            // Get the sheet
 
-                    // Get the rows in the sheet
-                    List<Row> rows = sheet.getRows();
+            if (sheet != null) {
+                System.out.println("Sheet Name: " + sheet.getName());
 
-                    // Iterate through rows and retrieve indent data
-                    for (Row row : rows) {
-                        // Find cell corresponding to the indent level in each row
-                        List<Cell> cells = row.getCells();
+                // Get the rows in the sheet
+                List<Row> rows = sheet.getRows();
 
-                        if (row != null) {
-                            // Indent the row (move it to be a child of the previous row)
-                            row.setParentId(row.getParentId());
+                // Iterate through rows and retrieve indent data
+                for (Row row : rows) {
+                    // Find cell corresponding to the indent level in each row
+                    List<Cell> cells = row.getCells();
 
-                            // Perform the update using the updateRow method
-                            smartsheet.sheetResources().rowResources().updateRows(sheetId, Arrays.asList(row));
+                    if (row != null) {
+                        // Indent the row (move it to be a child of the previous row)
+                        row.setParentId(row.getParentId());
 
-                            System.out.println("Row ID: " + row.getId() + " has been indented/outdented successfully.");
-                        } else {
-                            System.out.println("Row not found");
-                        }
-                        
-                        /*for (Cell cell : cells) {
-                            Format cellFormat = cell.getFormat();
+                        // Perform the update using the updateRow method
+                        smartsheet.sheetResources().rowResources().updateRows(sheetId, Arrays.asList(row));
 
-
-                           /* if (cellFormat != null && cellFormat.getFormatType() == FormatType.INDENT) {
-                                Indent indentDetails = (Indent) cellFormat.getFormatDetails();
-                                int indentLevel = indentDetails.getLevel();
-                                System.out.println("Row ID: " + row.getId() + ", Column ID: " + cell.getColumnId() + ", Indent Level: " + indentLevel);
-                            } else {
-                                System.out.println("Row ID: " + row.getId() + ", Column ID: " + cell.getColumnId() + " doesn't have indent data");
-                            }*/
-                        }
+                        System.out.println("Row ID: " + row.getId() + " has been indented/outdented successfully.");
+                    } else {
+                        System.out.println("Row not found");
                     }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+                }
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
 
     static Map<Integer, Long> getRowNumberToIdMap(Sheet sheet) {
         Map<Integer, Long> rowNumberToIdMap = new LinkedHashMap<Integer, Long>();
-        if(sheet!=null){
+        if (sheet != null) {
             List<Row> rows = sheet.getRows();
 
-            int i=1;
-            for(Row row:rows){
-                rowNumberToIdMap.put(i,row.getId());
-                i=i+1;
+            int i = 1;
+            for (Row row : rows) {
+                rowNumberToIdMap.put(i, row.getId());
+                i = i + 1;
             }
 
 
         }
 
-
-        // Implement your logic to fetch the row number to row ID mapping
-        // Return a Map<Integer, Long> where key is row number and value is row ID
-        // Example: Map<Integer, Long> rowNumberToIdMap = ...;
-        // rowNumberToIdMap.put(1, 123456789L); // Replace 123456789L with actual row ID
-        // rowNumberToIdMap.put(2, 987654321L); // Replace 987654321L with actual row ID
-        // return rowNumberToIdMap;
         return rowNumberToIdMap;
     }
 
@@ -221,7 +196,7 @@ public class Test {
         return digit;
     }
 
-    public static LinkedHashMap<String, Map<String, Map<String, String>>> getLastRecord(Sheet sheet){
+    public static LinkedHashMap<String, Map<String, Map<String, String>>> getLastRecord(Sheet sheet) {
 
         if (sheet != null) {
             System.out.println("Sheet Name: " + sheet.getName());
@@ -231,12 +206,12 @@ public class Test {
 
             for (Column column : columns) {
                 System.out.println(column.getId() + " : " + column.getTitle());
-                columnMap.put(String.valueOf(column.getId()),column.getTitle());
+                columnMap.put(String.valueOf(column.getId()), column.getTitle());
             }
 
 
             // Get the row ID corresponding to the target row number
-            Long targetRowId = rowNumberToIdMap.get(sheet.getTotalRowCount()-12);
+            Long targetRowId = rowNumberToIdMap.get(sheet.getTotalRowCount() - 12);
             boolean startPrinting = false;
 
             for (Row row : sheet.getRows()) {
@@ -259,7 +234,7 @@ public class Test {
                         version = getVersion(String.valueOf(cell.getValue()));
 
 
-                        System.out.println("   Cell Data - Column ID: " + cell.getColumnId() + ", Value: " + cell.getValue()+", ParentId : "+parentId+", ");
+                        System.out.println("   Cell Data - Column ID: " + cell.getColumnId() + ", Value: " + cell.getValue() + ", ParentId : " + parentId + ", ");
 
                         rowMap.put(columnMap.get(String.valueOf(cell.getColumnId())), String.valueOf(cell.getValue()));
 
@@ -272,23 +247,23 @@ public class Test {
                     }
 
                     // getMapKey(rowMap,"RHOAI")
-                    taskMap.put(String.valueOf(row.getId()),rowMap);
+                    taskMap.put(String.valueOf(row.getId()), rowMap);
 
                 }
 
 
             }
-            finalMap.put(getMapKey(taskMap,"RHOAI"), taskMap);
+            finalMap.put(getMapKey(taskMap, "RHOAI"), taskMap);
         }
         return finalMap;
     }
 
 
-    public static String getMapKey(Map<String,Map<String, String>> tmap, String substringToFind) {
+    public static String getMapKey(Map<String, Map<String, String>> tmap, String substringToFind) {
         // Create a sample map
 
         // Substring to search for in keys
-        String keyToFind ="";
+        String keyToFind = "";
         // Check if any key contains the substring
         boolean found = false;
         for (Map.Entry<String, Map<String, String>> entry : tmap.entrySet()) {
@@ -311,7 +286,7 @@ public class Test {
     }
 
 
-    public static List<Cell> getRowData(Sheet sheet){
+    public static List<Cell> getRowData(Sheet sheet) {
         Row row1 = new Row();
 
         if (sheet != null) {
@@ -326,7 +301,7 @@ public class Test {
             }
 
             // Get the row ID corresponding to the target row number
-            Long targetRowId = rowNumberToIdMap.get(sheet.getTotalRowCount() - 12);
+            Long targetRowId = rowNumberToIdMap.get(sheet.getTotalRowCount() - 11);
             boolean startPrinting = false;
 
             for (Row row : sheet.getRows()) {
