@@ -126,7 +126,7 @@ public class UpdateSmartsheetDateCalculation {
             numbDays = 6 - numbDays;
             List<Row> rowsToAdd;
             if (sheet != null) {
-                for (i = 0; i < numbDays; i++) {
+                for (i = 0; i <= numbDays; i++) {
 
                     rowsToAdd = new ArrayList<>();
 

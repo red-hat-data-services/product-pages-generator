@@ -1,0 +1,29 @@
+name: Java CI
+
+on:
+  push:
+    branches:
+      - main  # Change this to your main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-11-jdk
+          java -version  # Verify Java installation
+       # uses: actions/setup-java@v2
+     #   with:
+       #   java-version: '11'
+
+      - name: Build with Maven
+        run: mvn clean install -B
+
+      - name: Run Java application
+        run: java -jar target/smartsheet-automation-0.0.1-SNAPSHOT.jar # Replace with your JAR file name
