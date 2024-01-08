@@ -9,6 +9,7 @@ import com.smartsheet.api.models.Row;
 import com.smartsheet.api.models.Sheet;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 
 public class UpdateSmartsheetDateCalculation {
@@ -43,18 +45,21 @@ public class UpdateSmartsheetDateCalculation {
     public double version = 2.7;
 
     Map<String, String> resultData = new LinkedHashMap<String, String>();
-    String accessToken = "h9ffps5tfyPBUOCArgYpsA02lQdcgnOIMEUkn";
-    long sheetId = 812000691048324L;
+    String accessToken;
+    long sheetId;
 
     Sheet sheet;
 
     List<Cell> Cells;
-    Smartsheet smartsheet = new SmartsheetBuilder().setAccessToken(accessToken).build();
+    Smartsheet smartsheet;
 
     Map<String, String> rowMap = new LinkedHashMap<String, String>();
 
     public UpdateSmartsheetDateCalculation() throws SmartsheetException {
 
+        Properties properties = getProperties();
+        accessToken = properties.getProperty("accessToken");
+        sheetId = Long.parseLong(properties.getProperty("sheetId"));
         smartsheet = new SmartsheetBuilder().setAccessToken(accessToken).build();
         sheet = smartsheet.sheetResources().getSheet(sheetId, null, null, null, null, null, null, null);
         loadData("data.txt");
@@ -111,6 +116,18 @@ public class UpdateSmartsheetDateCalculation {
             smartsheet.sheetResources().rowResources().updateRows(sheetId, rowsToUpdate);
 
         }
+    }
+
+    private Properties getProperties(){
+        Properties properties = new Properties();
+
+        try (FileInputStream fis = new FileInputStream("config.properties")) {
+            properties.load(fis);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return properties;
     }
 
 
