@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main  # Change this to your main branch
+  schedule:
+    - cron: '0 0 * * 1'  # This cron expression runs at 00:00 on Monday (day-of-week 1)
 
 jobs:
   build:
@@ -18,12 +20,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk
           java -version  # Verify Java installation
-       # uses: actions/setup-java@v2
-     #   with:
-       #   java-version: '11'
 
       - name: Build with Maven
         run: mvn clean install -B
 
       - name: Run Java application
-        run: java -jar target/smartsheet-automation-0.0.1-SNAPSHOT.jar # Replace with your JAR file name
+        run: java -jar target/smartsheet-automation-0.0.1-SNAPSHOT.jar # Replace with your JAR file
