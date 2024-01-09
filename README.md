@@ -1,16 +1,16 @@
-# smartsheet-automation
+# Openshift AI Release Plan SmartSheet Automation
 
 ## Overview
-SmartSheet Automation is a project designed to automate data retrieval and processing from SmartSheet using Java.
+Openshift AI Release Plan SmartSheet Automation is created to make planning the next six month's releases plan easier.
 
 ## Features
-- **Data Retrieval**: Fetches data from SmartSheet API.
-- **Data Manipulation**: Processes data based on specified requirements.
-- **Data Output**: Outputs processed data in various formats.
+- **Data Retrieval**: Fetches the current release end date from SmartSheet provided.
+- **Data Manipulation**: Processes date and calculated next six month's release plan.
+- **Data Output**: Writes processed data in provided smartsheet.
 
 ## Installation
 To use this project, follow these steps:
-1. Clone the repository: `git clone https://github.com/moulalis/smartsheet-automation.git`
+1. Fork and Clone the repository: `git clone https://github.com/moulalis/smartsheet-automation.git`
 2. Install dependencies: `mvn clean install`
 
 ## Configuration
@@ -29,11 +29,11 @@ The project structure is as follows:
 - `config.properties`: Configuration file.
 
 ## APIs/External Services Used
-This project uses the SmartSheet API for data retrieval and manipulation.
+This project uses the SmartSheet API/Java SDK for data retrieval and manipulation.
 
 ## Troubleshooting
 ### Issue: API key authentication fails
-- **Solution**: Check if the API key is correctly configured in `config.properties`.
+- **Solution**: Check if the API key is correctly configured in `config.properties` and check for the log in the github actions.
 
 ## Contributions
 Contributions are welcome! Follow these steps to contribute:
@@ -43,8 +43,6 @@ Contributions are welcome! Follow these steps to contribute:
 4. Push to the branch: `git push origin feature/your-feature`.
 5. Submit a pull request.
 
-## License
-This project is licensed under the [MIT License](LICENSE).
 
 ## References
-- SmartSheet API Documentation: [link-to-docs](https://smartsheet-api-docs.com)
+- SmartSheet API Documentation: [link-to-docs](https://docs.google.com/document/d/1APw7ehpiE35ZuIiMq6sLbt0JxROpt0Vn6spN7gSvaKg/edit#heading=h.8jjfikvvcg5u)
