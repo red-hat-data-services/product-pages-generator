@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-
 public class UpdateSmartsheetDateCalculation {
     public static final String RHOAI = "RHOAI";
     public static final String SPRINT_STARTS = "Sprint Starts";
@@ -62,7 +61,6 @@ public class UpdateSmartsheetDateCalculation {
         sheetId = Long.parseLong(properties.getProperty("sheetId"));
         smartsheet = new SmartsheetBuilder().setAccessToken(accessToken).build();
         sheet = smartsheet.sheetResources().getSheet(sheetId, null, null, null, null, null, null, null);
-        loadData("data.txt");
         Cells = SmartsheetDateUtil.getRowData(sheet);
         loadCellDataToMap(Cells, loadColumnDataToMap(sheet));
         version = Double.parseDouble(SmartsheetDateUtil.getVersion(rowMap.get("Task Name"))) + 0.1;
