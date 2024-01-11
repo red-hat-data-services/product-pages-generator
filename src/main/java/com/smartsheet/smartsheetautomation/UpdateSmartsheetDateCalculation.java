@@ -8,11 +8,8 @@ import com.smartsheet.api.models.Column;
 import com.smartsheet.api.models.Row;
 import com.smartsheet.api.models.Sheet;
 
-import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,6 +17,8 @@ import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +40,7 @@ public class UpdateSmartsheetDateCalculation {
 
     public final String EMPTY_SPACE = " ";
 
-    public double version = 2.7;
+    public String version = "2.7";
 
     Map<String, String> resultData = new LinkedHashMap<String, String>();
     String accessToken;
@@ -63,9 +62,21 @@ public class UpdateSmartsheetDateCalculation {
         sheet = smartsheet.sheetResources().getSheet(sheetId, null, null, null, null, null, null, null);
         Cells = SmartsheetDateUtil.getRowData(sheet);
         loadCellDataToMap(Cells, loadColumnDataToMap(sheet));
-        version = Double.parseDouble(SmartsheetDateUtil.getVersion(rowMap.get("Task Name"))) + 0.1;
+        version = calculateNextVersion(SmartsheetDateUtil.getVersion(rowMap.get("Task Name")));
 
 
+    }
+    public String calculateNextVersion(String version){
+
+        String plusVersion = "0.1";
+
+        String[] nextVersion = version.split("\\.");
+        String[] decimal = plusVersion.split("\\.");
+
+        // Parse the decimal part
+        int decimalPart = Integer.parseInt(nextVersion[1])+Integer.parseInt(decimal[1]); // Use radix 10
+
+        return nextVersion[0]+"."+decimalPart;
     }
 
     public Cell addCell(Sheet sheet, String cellValue, int index) {
@@ -98,22 +109,40 @@ public class UpdateSmartsheetDateCalculation {
     public void addcommentdata(Sheet sheet, Row rowToUpdate,String value) throws SmartsheetException {
         List<Row> createdChildRows = null;
         if (sheet != null) {
+            try {
             // Modify the specific cell value in the fetched row data
             List<Cell> cells = rowToUpdate.getCells();
             Long columnId = sheet.getColumns().get(0).getId();
             for (Cell cell : cells){
-                if(cell.getColumnId() == columnId){
+                if(cell.getColumnId().equals(columnId)){
                     cell.setValue(value);
                     break;
                 }
             }
+            Row.UpdateRowBuilder updateRowBuilder = new Row.UpdateRowBuilder();
             List<Row> rowsToUpdate = new ArrayList<>();
             rowsToUpdate.add(rowToUpdate);
 
             // Update the row with the modified cell value
             smartsheet.sheetResources().rowResources().updateRows(sheetId, rowsToUpdate);
+            } catch (SmartsheetException e) {
+                e.printStackTrace();
+            }
 
         }
+    }
+    public void updateRow(HashMap<Row,String> rowStringHashMap) throws SmartsheetException {
+
+        Iterator<Map.Entry<Row,String>> iterator = rowStringHashMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+
+            Map.Entry<Row,String> entry = iterator.next();
+
+            addcommentdata(sheet, entry.getKey(),entry.getValue());
+
+        }
+
+
     }
 
     private Properties getProperties(){
@@ -142,7 +171,7 @@ public class UpdateSmartsheetDateCalculation {
         try {
             // Add 7 days to the current date
             LocalDate futureDate;
-            String providedDate = rowMap.get("Start");
+            String providedDate = rowMap.get("Start");//"2023-12-13T08:00:00";//
             String finishDate = rowMap.get("Finish");// Example date "2024-01-20T08:00:00";
             LocalDateTime localDateTime = LocalDateTime.parse(providedDate);
             LocalDateTime finishDateTime = LocalDateTime.parse(finishDate);
@@ -159,10 +188,9 @@ public class UpdateSmartsheetDateCalculation {
             Sheet sheet = smartsheet.sheetResources().getSheet(sheetId, null, null, null, null, null, null, null);
 
             long numbDays = getDateDifference(finishDateTime.format(dformatter), dformatter);
-            //numbDays = 6 - numbDays;
             List<Row> rowsToAdd;
             if (sheet != null) {
-                for (i = 0; i <= numbDays; i++) {
+                for (i = 0; i < numbDays; i++) {
 
                     rowsToAdd = new ArrayList<>();
                     String GADate=null;
@@ -184,6 +212,13 @@ public class UpdateSmartsheetDateCalculation {
                         quarterRows.add(createRow(null, cell1));
                         addsmartsheetdata(sheet, quarterRows);
 
+                    }else{
+                        List<Cell> cell1 = new ArrayList<>();
+                        Cell cell = addCell(sheet, "", 1);
+                        cell1.add(cell);
+                        List<Row> quarterRows = new ArrayList<>();
+                        quarterRows.add(createRow(null, cell1));
+                        addsmartsheetdata(sheet, quarterRows);
                     }
                     System.out.println(version + EMPTY_SPACE + RHOAI + localDateq.format(dformatter));
                     planMap.put(version + EMPTY_SPACE + SPRINT_STARTS, localDateq.format(dformatter));
@@ -192,7 +227,7 @@ public class UpdateSmartsheetDateCalculation {
                     //cell2.add(addCell(sheet, "Planned GA dates January 2 (SM) January 4 (CS)", 0));
 
                     cell2.add(addCell(sheet, version + EMPTY_SPACE + RHOAI, 1));
-                    cell2.add(addCell(sheet, "31d", 2));
+                    cell2.add(addCell(sheet, "21d", 2));
                     cell2.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE), 3));
                     List<Row> parentRows = new ArrayList<>();
                     parentRows.add(createRow(null, cell2));
@@ -201,12 +236,12 @@ public class UpdateSmartsheetDateCalculation {
 
                     List<Cell> cell3 = new ArrayList<>();
                     cell3.add(addCell(sheet, version + " Sprint Starts", 1));
-                    cell3.add(addCell(sheet, "29d", 2));
+                    cell3.add(addCell(sheet, "14d", 2));
                     cell3.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE), 3));
                     //cells.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE),4));
                     rowsToAdd.add(createRow(parentrow.getId(), cell3));
 
-                    futureDate = localDateq.plusDays(14);
+                    futureDate = localDateq.plusDays(10);
                     LocalDate nextFriday = getNextFriday(futureDate);
                     System.out.println(version + " Feature Freeze: " + nextFriday.format(dformatter));
                     planMap.put(version + EMPTY_SPACE + FEATURE_FREEZ, nextFriday.format(dformatter));
@@ -247,6 +282,7 @@ public class UpdateSmartsheetDateCalculation {
 
 
                     List<Cell> cell7 = new ArrayList<>();
+                    cell7.add(addCell(sheet, "estimate", 0));
                     cell7.add(addCell(sheet, version + " Push to Stage (Cloud Service)", 1));
                     cell7.add(addCell(sheet, "0d", 2));
                     cell7.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
@@ -289,7 +325,7 @@ public class UpdateSmartsheetDateCalculation {
                     rowsToAdd.add(createRow(parentrow.getId(), cell10));
 
 
-                    futureDate = getDatesWithoutWeekends(futureDate, 2);
+                    futureDate = getDatesWithoutWeekends(futureDate, 1);
                     System.out.println(version + " Push to Prod (Cloud Service) " + futureDate.format(dformatter));
                     planMap.put(version + EMPTY_SPACE + PUSH_TO_PROD, futureDate.format(dformatter));
 
@@ -339,8 +375,7 @@ public class UpdateSmartsheetDateCalculation {
                     LocalDate startDate = LocalDate.parse(formattedDate, dformatter);
                     formattedDate = getDatesWithoutWeekends(startDate, 20).format(dformatter);
 
-                    DecimalFormat decimalFormat = new DecimalFormat("#.##");
-                    version = Double.parseDouble(decimalFormat.format(version + 0.1));
+                    version = calculateNextVersion(version);
 
 
                 }
@@ -354,10 +389,10 @@ public class UpdateSmartsheetDateCalculation {
 
     private long getDateDifference(String formattedDate, DateTimeFormatter formatter) {
 
-        LocalDate today = LocalDate.now();//LocalDate.of(2024,03,20);
+        LocalDate today = LocalDate.now();//LocalDate.of(2022,12,20);//
         LocalDate providedDate = LocalDate.parse(formattedDate, formatter);
         long day = ChronoUnit.MONTHS.between(today.withDayOfMonth(1),providedDate.withDayOfMonth(1));//providedDate.getMonth().getValue() - today.getMonth().getValue();
-        if(day > 5L || day ==1){
+        if(day > 5L || day ==1 || day == 0){
             day = 6;
         } else if (day > 1L && day < 5L) {
             day = 1;
@@ -400,7 +435,7 @@ public class UpdateSmartsheetDateCalculation {
         LocalDate futureDate = currentDate.plusDays(numberOfDates);
 
         // Loop to find and print dates excluding weekends
-        while (datesCount < 1) {
+        while (datesCount <= 1) {
             if ((futureDate.getDayOfWeek() == DayOfWeek.SATURDAY || futureDate.getDayOfWeek() == DayOfWeek.SUNDAY)) {
                 futureDate = futureDate.plusDays(1);
             }
@@ -428,22 +463,6 @@ public class UpdateSmartsheetDateCalculation {
         }
 
         return futureDate;
-    }
-
-    private void loadData(String filePath) {
-        StringBuilder jsonData = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                jsonData.append(line);
-                String[] pair1 = line.split(":");
-                resultData.put(pair1[0], pair1[1]);
-            }
-
-            System.out.println("resultData :" + resultData);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void loadCellDataToMap(List<Cell> cells, Map<String, String> columnMap) {
