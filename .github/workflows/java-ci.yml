@@ -1,11 +1,14 @@
 name: Java CI
 
 on:
-  push:
-    branches:
-      - main  # Change this to your main branch
-  schedule:
-    - cron: '0 0 * * 1'  # This cron expression runs at 00:00 on Monday (day-of-week 1)
+  repository_dispatch:
+    types:
+      - manual
+  #push:
+   # branches:
+    #  - main  # Change this to your main branch
+  #schedule:
+   # - cron: '0 0 * * 1'  # This cron expression runs at 00:00 on Monday (day-of-week 1)
 
 jobs:
   build:
