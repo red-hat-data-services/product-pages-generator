@@ -50,12 +50,13 @@ public class UpdateSmartsheetDateCalculation {
 
     List<Cell> Cells;
     Smartsheet smartsheet;
+    Properties properties;
 
     Map<String, String> rowMap = new LinkedHashMap<String, String>();
 
     public UpdateSmartsheetDateCalculation() throws SmartsheetException {
 
-        Properties properties = getProperties();
+        properties = getProperties();
         accessToken = properties.getProperty("accessToken");
         sheetId = Long.parseLong(properties.getProperty("sheetId"));
         smartsheet = new SmartsheetBuilder().setAccessToken(accessToken).build();
@@ -158,8 +159,7 @@ public class UpdateSmartsheetDateCalculation {
     }
 
 
-    public void writeSmartsheetData() throws SmartsheetException {
-        UpdateSmartsheetDateCalculation updateSmartsheetDateCalculation = new UpdateSmartsheetDateCalculation();
+    public long writeSmartsheetData() throws SmartsheetException {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yy");
         Map<String, String> planMap;
@@ -168,11 +168,19 @@ public class UpdateSmartsheetDateCalculation {
 
         Map<String, String> dateMap = new LinkedHashMap<String, String>();
         Row parentrow;
+        long numbDays = 0L;
         try {
             // Add 7 days to the current date
             LocalDate futureDate;
-            String providedDate = rowMap.get("Start");//"2023-12-13T08:00:00";//
-            String finishDate = rowMap.get("Finish");// Example date "2024-01-20T08:00:00";
+           // String providedDate = properties.get("providedDate").equals("")?rowMap.get("Start"):properties.get("providedDate");//"2023-12-13T08:00:00";//
+            String providedDate = (properties.get("providedDate") != null && !properties.get("providedDate").equals(""))
+                    ? properties.get("providedDate").toString()
+                    : rowMap.get("Start");
+           // String finishDate = rowMap.get("Finish");// Example date "2024-01-20T08:00:00";
+
+            String finishDate = (properties.get("finishDate") != null && !properties.get("finishDate").equals(""))
+                    ? properties.get("finishDate").toString()
+                    : rowMap.get("Start");
             LocalDateTime localDateTime = LocalDateTime.parse(providedDate);
             LocalDateTime finishDateTime = LocalDateTime.parse(finishDate);
             // Define the desired date format
@@ -187,7 +195,7 @@ public class UpdateSmartsheetDateCalculation {
             int i;
             Sheet sheet = smartsheet.sheetResources().getSheet(sheetId, null, null, null, null, null, null, null);
 
-            long numbDays = getDateDifference(finishDateTime.format(dformatter), dformatter);
+            numbDays = getDateDifference(finishDateTime.format(dformatter), dformatter,properties);
             List<Row> rowsToAdd;
             if (sheet != null) {
                 for (i = 0; i < numbDays; i++) {
@@ -224,7 +232,7 @@ public class UpdateSmartsheetDateCalculation {
                     planMap.put(version + EMPTY_SPACE + SPRINT_STARTS, localDateq.format(dformatter));
                     List<Cell> cell2 = new ArrayList<>();
                     System.out.println(version + EMPTY_SPACE + RHOAI);
-                    //cell2.add(addCell(sheet, "Planned GA dates January 2 (SM) January 4 (CS)", 0));
+                    cell2.add(addCell(sheet, "Planned GA dates (SM); (CS)", 0));
 
                     cell2.add(addCell(sheet, version + EMPTY_SPACE + RHOAI, 1));
                     cell2.add(addCell(sheet, "21d", 2));
@@ -236,7 +244,7 @@ public class UpdateSmartsheetDateCalculation {
 
                     List<Cell> cell3 = new ArrayList<>();
                     cell3.add(addCell(sheet, version + " Sprint Starts", 1));
-                    cell3.add(addCell(sheet, "14d", 2));
+                    cell3.add(addCell(sheet, "15d", 2));
                     cell3.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE), 3));
                     //cells.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE),4));
                     rowsToAdd.add(createRow(parentrow.getId(), cell3));
@@ -276,7 +284,7 @@ public class UpdateSmartsheetDateCalculation {
                     rowsToAdd.add(createRow(parentrow.getId(), cell6));
 
 
-                    futureDate = getDatesWithoutWeekends(nextMonday, 7);
+                    futureDate = getDatesWithoutWeekends(nextMonday, 2);
                     System.out.println(version + " Push to Stage (Cloud Service) " + futureDate.format(dformatter));
                     planMap.put(version + EMPTY_SPACE + PUSH_TO_STAGE, futureDate.format(dformatter));
 
@@ -289,7 +297,7 @@ public class UpdateSmartsheetDateCalculation {
                     rowsToAdd.add(createRow(parentrow.getId(), cell7));
 
 
-                    futureDate = getDatesWithoutWeekends(futureDate, 4);
+                    //futureDate = getDatesWithoutWeekends(futureDate, 4);
                     System.out.println(version + " Release Notes Final " + futureDate.format(dformatter));
                     planMap.put(version + EMPTY_SPACE + RELEASE_NOTES_FINAL, futureDate.format(dformatter));
 
@@ -301,7 +309,7 @@ public class UpdateSmartsheetDateCalculation {
                     rowsToAdd.add(createRow(parentrow.getId(), cell8));
 
 
-                    futureDate = getNextFriday(futureDate);
+                    futureDate = getDatesWithoutWeekends(futureDate, 6); //getNextFriday(futureDate);
                     System.out.println(version + " Errata in REL_PREP " + futureDate.format(dformatter));
                     planMap.put(version + EMPTY_SPACE + ERRATA_IN_REL_PREP, futureDate.format(dformatter));
 
@@ -325,7 +333,7 @@ public class UpdateSmartsheetDateCalculation {
                     rowsToAdd.add(createRow(parentrow.getId(), cell10));
 
 
-                    futureDate = getDatesWithoutWeekends(futureDate, 1);
+                    futureDate = getDatesWithoutWeekends(futureDate, 2);
                     System.out.println(version + " Push to Prod (Cloud Service) " + futureDate.format(dformatter));
                     planMap.put(version + EMPTY_SPACE + PUSH_TO_PROD, futureDate.format(dformatter));
 
@@ -385,11 +393,22 @@ public class UpdateSmartsheetDateCalculation {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return numbDays;
     }
 
-    private long getDateDifference(String formattedDate, DateTimeFormatter formatter) {
+    private long getDateDifference(String formattedDate, DateTimeFormatter formatter, Properties properties) {
 
-        LocalDate today = LocalDate.now();//LocalDate.of(2022,12,20);//
+        LocalDate today;//LocalDate.of(2022,12,20);//
+        String year = properties.get("year").toString();
+        String month = properties.get("month").toString();
+        String date = properties.get("date").toString();
+
+        if((year != null && !year.equals("")) && (month != null && !month.equals("")) && (date != null && !date.equals(""))){
+            today = LocalDate.of(Integer.parseInt(year),Integer.parseInt(month),Integer.parseInt(date));
+        }else {
+            today = LocalDate.now();
+        }
+
         LocalDate providedDate = LocalDate.parse(formattedDate, formatter);
         long day = ChronoUnit.MONTHS.between(today.withDayOfMonth(1),providedDate.withDayOfMonth(1));//providedDate.getMonth().getValue() - today.getMonth().getValue();
         if(day > 5L || day ==1 || day == 0){
