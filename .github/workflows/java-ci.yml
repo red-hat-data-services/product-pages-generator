@@ -21,26 +21,15 @@ jobs:
           sudo apt-get install -y openjdk-11-jdk
           java -version  # Verify Java installation
 
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.x
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install requests
-
-
       - name: Build with Maven
         run: mvn clean install -B
 
       - name: Set up Env Variable
         run: |
-          echo "AUTH_TOKEN=${{ secrets.AUTH_TOKEN }}" >> $GITHUB_ENV
+          echo "ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }}" >> $GITHUB_ENV
 
       - name: Run Java application
         run: java -jar target/smartsheet-automation-0.0.1-SNAPSHOT.jar
         env:
-          AUTH_TOKEN: ${{ secrets.AUTH_TOKEN}}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN}}
 

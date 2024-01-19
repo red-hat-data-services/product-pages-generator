@@ -54,10 +54,10 @@ public class UpdateSmartsheetDateCalculation {
 
     Map<String, String> rowMap = new LinkedHashMap<String, String>();
 
-    public UpdateSmartsheetDateCalculation() throws SmartsheetException {
+    public UpdateSmartsheetDateCalculation(String authToken) throws SmartsheetException {
 
         properties = getProperties();
-        accessToken = properties.getProperty("accessToken");
+        accessToken = (authToken==null || authToken.equals("")) ? properties.getProperty("accessToken"):authToken;
         sheetId = Long.parseLong(properties.getProperty("sheetId"));
         smartsheet = new SmartsheetBuilder().setAccessToken(accessToken).build();
         sheet = smartsheet.sheetResources().getSheet(sheetId, null, null, null, null, null, null, null);
@@ -67,7 +67,8 @@ public class UpdateSmartsheetDateCalculation {
 
 
     }
-    public String calculateNextVersion(String version){
+
+    public String calculateNextVersion(String version) {
 
         String plusVersion = "0.1";
 
@@ -75,9 +76,9 @@ public class UpdateSmartsheetDateCalculation {
         String[] decimal = plusVersion.split("\\.");
 
         // Parse the decimal part
-        int decimalPart = Integer.parseInt(nextVersion[1])+Integer.parseInt(decimal[1]); // Use radix 10
+        int decimalPart = Integer.parseInt(nextVersion[1]) + Integer.parseInt(decimal[1]); // Use radix 10
 
-        return nextVersion[0]+"."+decimalPart;
+        return nextVersion[0] + "." + decimalPart;
     }
 
     public Cell addCell(Sheet sheet, String cellValue, int index) {
@@ -107,46 +108,47 @@ public class UpdateSmartsheetDateCalculation {
         return createdChildRows.get(0);
     }
 
-    public void addcommentdata(Sheet sheet, Row rowToUpdate,String value) throws SmartsheetException {
+    public void addcommentdata(Sheet sheet, Row rowToUpdate, String value) throws SmartsheetException {
         List<Row> createdChildRows = null;
         if (sheet != null) {
             try {
-            // Modify the specific cell value in the fetched row data
-            List<Cell> cells = rowToUpdate.getCells();
-            Long columnId = sheet.getColumns().get(0).getId();
-            for (Cell cell : cells){
-                if(cell.getColumnId().equals(columnId)){
-                    cell.setValue(value);
-                    break;
+                // Modify the specific cell value in the fetched row data
+                List<Cell> cells = rowToUpdate.getCells();
+                Long columnId = sheet.getColumns().get(0).getId();
+                for (Cell cell : cells) {
+                    if (cell.getColumnId().equals(columnId)) {
+                        cell.setValue(value);
+                        break;
+                    }
                 }
-            }
-            Row.UpdateRowBuilder updateRowBuilder = new Row.UpdateRowBuilder();
-            List<Row> rowsToUpdate = new ArrayList<>();
-            rowsToUpdate.add(rowToUpdate);
+                Row.UpdateRowBuilder updateRowBuilder = new Row.UpdateRowBuilder();
+                List<Row> rowsToUpdate = new ArrayList<>();
+                rowsToUpdate.add(rowToUpdate);
 
-            // Update the row with the modified cell value
-            smartsheet.sheetResources().rowResources().updateRows(sheetId, rowsToUpdate);
+                // Update the row with the modified cell value
+                smartsheet.sheetResources().rowResources().updateRows(sheetId, rowsToUpdate);
             } catch (SmartsheetException e) {
                 e.printStackTrace();
             }
 
         }
     }
-    public void updateRow(HashMap<Row,String> rowStringHashMap) throws SmartsheetException {
 
-        Iterator<Map.Entry<Row,String>> iterator = rowStringHashMap.entrySet().iterator();
+    public void updateRow(HashMap<Row, String> rowStringHashMap) throws SmartsheetException {
+
+        Iterator<Map.Entry<Row, String>> iterator = rowStringHashMap.entrySet().iterator();
         while (iterator.hasNext()) {
 
-            Map.Entry<Row,String> entry = iterator.next();
+            Map.Entry<Row, String> entry = iterator.next();
 
-            addcommentdata(sheet, entry.getKey(),entry.getValue());
+            addcommentdata(sheet, entry.getKey(), entry.getValue());
 
         }
 
 
     }
 
-    private Properties getProperties(){
+    private Properties getProperties() {
         Properties properties = new Properties();
 
         try (FileInputStream fis = new FileInputStream("config.properties")) {
@@ -164,19 +166,17 @@ public class UpdateSmartsheetDateCalculation {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yy");
         Map<String, String> planMap;
 
-        Map<String, Map<String, String>> relaseMap = new LinkedHashMap<String, Map<String, String>>();
-
         Map<String, String> dateMap = new LinkedHashMap<String, String>();
         Row parentrow;
         long numbDays = 0L;
         try {
             // Add 7 days to the current date
             LocalDate futureDate;
-           // String providedDate = properties.get("providedDate").equals("")?rowMap.get("Start"):properties.get("providedDate");//"2023-12-13T08:00:00";//
+            // String providedDate = properties.get("providedDate").equals("")?rowMap.get("Start"):properties.get("providedDate");//"2023-12-13T08:00:00";//
             String providedDate = (properties.get("providedDate") != null && !properties.get("providedDate").equals(""))
                     ? properties.get("providedDate").toString()
                     : rowMap.get("Start");
-           // String finishDate = rowMap.get("Finish");// Example date "2024-01-20T08:00:00";
+            // String finishDate = rowMap.get("Finish");// Example date "2024-01-20T08:00:00";
 
             String finishDate = (properties.get("finishDate") != null && !properties.get("finishDate").equals(""))
                     ? properties.get("finishDate").toString()
@@ -195,18 +195,17 @@ public class UpdateSmartsheetDateCalculation {
             int i;
             Sheet sheet = smartsheet.sheetResources().getSheet(sheetId, null, null, null, null, null, null, null);
 
-            numbDays = getDateDifference(finishDateTime.format(dformatter), dformatter,properties);
+            numbDays = getDateDifference(finishDateTime.format(dformatter), dformatter, properties);
             List<Row> rowsToAdd;
             if (sheet != null) {
                 for (i = 0; i < numbDays; i++) {
 
                     rowsToAdd = new ArrayList<>();
-                    String GADate=null;
-                    String CADate=null;
+                    String GADate;
+                    String CSDate;
 
                     LocalDate localDateq = LocalDate.parse(formattedDate, dformatter);
                     localDateq = getDatesWithoutWeekends(localDateq, 20);
-                    planMap = new LinkedHashMap<String, String>();
                     Month month = localDateq.getMonth();
                     int t = quarter;
                     quarter = (month.getValue() - 1) / 3 + 1;
@@ -220,19 +219,118 @@ public class UpdateSmartsheetDateCalculation {
                         quarterRows.add(createRow(null, cell1));
                         addsmartsheetdata(sheet, quarterRows);
 
-                    }else{
-                        List<Cell> cell1 = new ArrayList<>();
-                        Cell cell = addCell(sheet, "", 1);
-                        cell1.add(cell);
-                        List<Row> quarterRows = new ArrayList<>();
-                        quarterRows.add(createRow(null, cell1));
-                        addsmartsheetdata(sheet, quarterRows);
                     }
+
+                    List<Cell> cell3 = new ArrayList<>();
+                    cell3.add(addCell(sheet, version + EMPTY_SPACE + SPRINT_STARTS, 1));
+                    cell3.add(addCell(sheet, "15d", 2));
+                    cell3.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE), 3));
+                    //cells.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE),4));
+
+
+                    futureDate = localDateq.plusDays(10);
+                    LocalDate nextFriday = getNextFriday(futureDate);
+                    System.out.println(version + EMPTY_SPACE + FEATURE_FREEZ + nextFriday.format(dformatter));
+
+                    List<Cell> cell4 = new ArrayList<>();
+                    cell4.add(addCell(sheet, version + EMPTY_SPACE + FEATURE_FREEZ, 1));
+                    cell4.add(addCell(sheet, "0d", 2));
+                    cell4.add(addCell(sheet, nextFriday.format(DateTimeFormatter.ISO_DATE), 3));
+
+
+                    futureDate = nextFriday.plusDays(7);
+                    nextFriday = getNextFriday(futureDate);
+                    System.out.println(version + " Code Freeze: " + nextFriday.format(dformatter));
+
+                    List<Cell> cell5 = new ArrayList<>();
+                    cell5.add(addCell(sheet, version + EMPTY_SPACE + CODE_FREEZ, 1));
+                    cell5.add(addCell(sheet, "0d", 2));
+                    cell5.add(addCell(sheet, nextFriday.format(DateTimeFormatter.ISO_DATE), 3));
+
+
+                    LocalDate nextMonday = getNextMonday(nextFriday);
+                    System.out.println(version + " RC Available for QE: " + nextMonday.format(dformatter));
+
+                    List<Cell> cell6 = new ArrayList<>();
+                    cell6.add(addCell(sheet, version + EMPTY_SPACE + RC_AVAIL_FOR_QE, 1));
+                    cell6.add(addCell(sheet, "0d", 2));
+                    cell6.add(addCell(sheet, nextMonday.format(DateTimeFormatter.ISO_DATE), 3));
+
+
+                    futureDate = getDatesWithoutWeekends(nextMonday, 2);
+                    System.out.println(version + " Push to Stage (Cloud Service) " + futureDate.format(dformatter));
+
+
+                    List<Cell> cell7 = new ArrayList<>();
+                    cell7.add(addCell(sheet, "estimate", 0));
+                    cell7.add(addCell(sheet, version + EMPTY_SPACE + PUSH_TO_STAGE, 1));
+                    cell7.add(addCell(sheet, "0d", 2));
+                    cell7.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
+
+
+                    //futureDate = getDatesWithoutWeekends(futureDate, 4);
+                    System.out.println(version + " Release Notes Final " + futureDate.format(dformatter));
+
+
+                    List<Cell> cell8 = new ArrayList<>();
+                    cell8.add(addCell(sheet, version + EMPTY_SPACE + RELEASE_NOTES_FINAL, 1));
+                    cell8.add(addCell(sheet, "0d", 2));
+                    cell8.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
+
+
+                    futureDate = getDatesWithoutWeekends(futureDate, 6); //getNextFriday(futureDate);
+                    System.out.println(version + EMPTY_SPACE + ERRATA_IN_REL_PREP + futureDate.format(dformatter));
+
+
+                    List<Cell> cell9 = new ArrayList<>();
+                    cell9.add(addCell(sheet, version + EMPTY_SPACE + ERRATA_IN_REL_PREP, 1));
+                    cell9.add(addCell(sheet, "0d", 2));
+                    cell9.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
+
+
+                    System.out.println(version + " GA " + futureDate.format(dformatter));
+
+
+                    List<Cell> cell10 = new ArrayList<>();
+                    cell10.add(addCell(sheet, version + EMPTY_SPACE + GA, 1));
+                    cell10.add(addCell(sheet, "0d", 2));
+                    GADate = futureDate.format(DateTimeFormatter.ISO_DATE);
+                    cell10.add(addCell(sheet, GADate, 3));
+
+
+                    futureDate = getDatesWithoutWeekends(futureDate, 2);
+                    System.out.println(version + EMPTY_SPACE + PUSH_TO_PROD + futureDate.format(dformatter));
+
+
+                    List<Cell> cell11 = new ArrayList<>();
+                    cell11.add(addCell(sheet, version + EMPTY_SPACE + PUSH_TO_PROD, 1));
+                    cell11.add(addCell(sheet, "1d", 2));
+                    CSDate = futureDate.format(DateTimeFormatter.ISO_DATE);
+                    cell11.add(addCell(sheet, CSDate, 3));
+
+
+                    System.out.println(version + " Live testing completed " + futureDate.format(dformatter));
+
+
+                    List<Cell> cell12 = new ArrayList<>();
+                    cell12.add(addCell(sheet, version + EMPTY_SPACE + LIVE_TESTING_COMP, 1));
+                    cell12.add(addCell(sheet, "0.5d", 2));
+                    cell12.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
+
+
+                    System.out.println(version + EMPTY_SPACE + CSS_CONTENT_PUBLISH + futureDate.format(dformatter));
+
+
+                    List<Cell> cell13 = new ArrayList<>();
+                    cell13.add(addCell(sheet, version + EMPTY_SPACE + CSS_CONTENT_PUBLISH, 1));
+                    cell13.add(addCell(sheet, "0.5d", 2));
+                    cell13.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
+
+
                     System.out.println(version + EMPTY_SPACE + RHOAI + localDateq.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + SPRINT_STARTS, localDateq.format(dformatter));
                     List<Cell> cell2 = new ArrayList<>();
                     System.out.println(version + EMPTY_SPACE + RHOAI);
-                    cell2.add(addCell(sheet, "Planned GA dates (SM); (CS)", 0));
+                    cell2.add(addCell(sheet, "Planned GA dates " + SmartsheetDateUtil.getMonthDate(GADate) + " (SM); " + SmartsheetDateUtil.getMonthDate(CSDate) + " (CS)", 0));
 
                     cell2.add(addCell(sheet, version + EMPTY_SPACE + RHOAI, 1));
                     cell2.add(addCell(sheet, "21d", 2));
@@ -242,144 +340,22 @@ public class UpdateSmartsheetDateCalculation {
                     parentrow = addsmartsheetdata(sheet, parentRows);
 
 
-                    List<Cell> cell3 = new ArrayList<>();
-                    cell3.add(addCell(sheet, version + " Sprint Starts", 1));
-                    cell3.add(addCell(sheet, "15d", 2));
-                    cell3.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE), 3));
-                    //cells.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE),4));
                     rowsToAdd.add(createRow(parentrow.getId(), cell3));
-
-                    futureDate = localDateq.plusDays(10);
-                    LocalDate nextFriday = getNextFriday(futureDate);
-                    System.out.println(version + " Feature Freeze: " + nextFriday.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + FEATURE_FREEZ, nextFriday.format(dformatter));
-
-                    List<Cell> cell4 = new ArrayList<>();
-                    cell4.add(addCell(sheet, version + " Feature Freeze", 1));
-                    cell4.add(addCell(sheet, "0d", 2));
-                    cell4.add(addCell(sheet, nextFriday.format(DateTimeFormatter.ISO_DATE), 3));
                     rowsToAdd.add(createRow(parentrow.getId(), cell4));
-
-
-                    futureDate = nextFriday.plusDays(7);
-                    nextFriday = getNextFriday(futureDate);
-                    System.out.println(version + " Code Freeze: " + nextFriday.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + CODE_FREEZ, nextFriday.format(dformatter));
-
-                    List<Cell> cell5 = new ArrayList<>();
-                    cell5.add(addCell(sheet, version + " Code Freeze", 1));
-                    cell5.add(addCell(sheet, "0d", 2));
-                    cell5.add(addCell(sheet, nextFriday.format(DateTimeFormatter.ISO_DATE), 3));
                     rowsToAdd.add(createRow(parentrow.getId(), cell5));
-
-
-                    LocalDate nextMonday = getNextMonday(nextFriday);
-                    System.out.println(version + " RC Available for QE: " + nextMonday.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + RC_AVAIL_FOR_QE, nextMonday.format(dformatter));
-
-                    List<Cell> cell6 = new ArrayList<>();
-                    cell6.add(addCell(sheet, version + " RC Available for QE", 1));
-                    cell6.add(addCell(sheet, "0d", 2));
-                    cell6.add(addCell(sheet, nextMonday.format(DateTimeFormatter.ISO_DATE), 3));
                     rowsToAdd.add(createRow(parentrow.getId(), cell6));
-
-
-                    futureDate = getDatesWithoutWeekends(nextMonday, 2);
-                    System.out.println(version + " Push to Stage (Cloud Service) " + futureDate.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + PUSH_TO_STAGE, futureDate.format(dformatter));
-
-
-                    List<Cell> cell7 = new ArrayList<>();
-                    cell7.add(addCell(sheet, "estimate", 0));
-                    cell7.add(addCell(sheet, version + " Push to Stage (Cloud Service)", 1));
-                    cell7.add(addCell(sheet, "0d", 2));
-                    cell7.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
                     rowsToAdd.add(createRow(parentrow.getId(), cell7));
-
-
-                    //futureDate = getDatesWithoutWeekends(futureDate, 4);
-                    System.out.println(version + " Release Notes Final " + futureDate.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + RELEASE_NOTES_FINAL, futureDate.format(dformatter));
-
-
-                    List<Cell> cell8 = new ArrayList<>();
-                    cell8.add(addCell(sheet, version + " Release Notes Final", 1));
-                    cell8.add(addCell(sheet, "0d", 2));
-                    cell8.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
                     rowsToAdd.add(createRow(parentrow.getId(), cell8));
-
-
-                    futureDate = getDatesWithoutWeekends(futureDate, 6); //getNextFriday(futureDate);
-                    System.out.println(version + " Errata in REL_PREP " + futureDate.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + ERRATA_IN_REL_PREP, futureDate.format(dformatter));
-
-
-                    List<Cell> cell9 = new ArrayList<>();
-                    cell9.add(addCell(sheet, version + " Errata in REL_PREP", 1));
-                    cell9.add(addCell(sheet, "0d", 2));
-                    cell9.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
                     rowsToAdd.add(createRow(parentrow.getId(), cell9));
-
-
-                    System.out.println(version + " GA " + futureDate.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + GA, futureDate.format(dformatter));
-
-
-                    List<Cell> cell10 = new ArrayList<>();
-                    cell10.add(addCell(sheet, version + " GA", 1));
-                    cell10.add(addCell(sheet, "0d", 2));
-                    GADate = futureDate.format(DateTimeFormatter.ISO_DATE);
-                    cell10.add(addCell(sheet, GADate, 3));
                     rowsToAdd.add(createRow(parentrow.getId(), cell10));
-
-
-                    futureDate = getDatesWithoutWeekends(futureDate, 2);
-                    System.out.println(version + " Push to Prod (Cloud Service) " + futureDate.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + PUSH_TO_PROD, futureDate.format(dformatter));
-
-
-                    List<Cell> cell11 = new ArrayList<>();
-                    cell11.add(addCell(sheet, version + " Push to Prod (Cloud Service)", 1));
-                    cell11.add(addCell(sheet, "1d", 2));
-                    CADate = futureDate.format(DateTimeFormatter.ISO_DATE);
-                    cell11.add(addCell(sheet, CADate, 3));
                     rowsToAdd.add(createRow(parentrow.getId(), cell11));
-
-                    System.out.println(version + " Live testing completed " + futureDate.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + LIVE_TESTING_COMP, futureDate.format(dformatter));
-
-
-                    List<Cell> cell12 = new ArrayList<>();
-                    cell12.add(addCell(sheet, version + " Live testing completed", 1));
-                    cell12.add(addCell(sheet, "0.5d", 2));
-                    cell12.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
                     rowsToAdd.add(createRow(parentrow.getId(), cell12));
-
-
-                    System.out.println(version + " CCS content published " + futureDate.format(dformatter));
-                    planMap.put(version + EMPTY_SPACE + CSS_CONTENT_PUBLISH, futureDate.format(dformatter));
-
-
-                    List<Cell> cell13 = new ArrayList<>();
-                    cell13.add(addCell(sheet, version + " CCS content published", 1));
-                    cell13.add(addCell(sheet, "0.5d", 2));
-                    cell13.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
                     rowsToAdd.add(createRow(parentrow.getId(), cell13));
 
                     addsmartsheetdata(sheet, rowsToAdd);
-                    //addcommentdata(sheet,parentrow,"Planned GA dates"+ GADate+ "(SM)"+ CADate+ "(CS)");
 
-
-                    relaseMap.put(RHOAI, planMap);
                     System.out.println("########################################################");
-                    System.out.println(" ");
-                    System.out.println(" ");
 
-                    if (i == 0) {
-                        dateMap.put(version + EMPTY_SPACE + CSS_CONTENT_PUBLISH, futureDate.format(dformatter));
-                    } else if (i == 5) {
-                        dateMap.put(version + EMPTY_SPACE + SPRINT_STARTS, localDateq.format(dformatter));
-                    }
                     LocalDate startDate = LocalDate.parse(formattedDate, dformatter);
                     formattedDate = getDatesWithoutWeekends(startDate, 20).format(dformatter);
 
@@ -403,20 +379,19 @@ public class UpdateSmartsheetDateCalculation {
         String month = properties.get("month").toString();
         String date = properties.get("date").toString();
 
-        if((year != null && !year.equals("")) && (month != null && !month.equals("")) && (date != null && !date.equals(""))){
-            today = LocalDate.of(Integer.parseInt(year),Integer.parseInt(month),Integer.parseInt(date));
-        }else {
+        if ((year != null && !year.equals("")) && (month != null && !month.equals("")) && (date != null && !date.equals(""))) {
+            today = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(date));
+        } else {
             today = LocalDate.now();
         }
 
         LocalDate providedDate = LocalDate.parse(formattedDate, formatter);
-        long day = ChronoUnit.MONTHS.between(today.withDayOfMonth(1),providedDate.withDayOfMonth(1));//providedDate.getMonth().getValue() - today.getMonth().getValue();
-        if(day > 5L || day ==1 || day == 0){
+        long day = ChronoUnit.MONTHS.between(today.withDayOfMonth(1), providedDate.withDayOfMonth(1));//providedDate.getMonth().getValue() - today.getMonth().getValue();
+        if (day > 5L || day == 1 || day == 0) {
             day = 6;
         } else if (day > 1L && day < 5L) {
             day = 1;
-        }
-        else {
+        } else {
             day = -1;
         }
         return day;

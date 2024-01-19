@@ -8,7 +8,10 @@ import com.smartsheet.api.models.Column;
 import com.smartsheet.api.models.Row;
 import com.smartsheet.api.models.Sheet;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -235,4 +238,27 @@ public class SmartsheetDateUtil {
     }
 
 
+    public static String getMonthDate(String inputDateString){
+
+        // Define the input date format
+        SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        // Define the desired output date format
+        SimpleDateFormat outputDateFormat = new SimpleDateFormat("MMMM d");
+        String outputDateString = "";
+        try {
+            // Parse the input date string
+            Date date = inputDateFormat.parse(inputDateString);
+
+            // Format the date as per the desired output format
+            outputDateString = outputDateFormat.format(date);
+
+            // Print the result
+            System.out.println(outputDateString);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            // Handle parsing exception if necessary
+        }
+        return outputDateString;
+    }
 }

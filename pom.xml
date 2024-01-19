@@ -32,11 +32,6 @@
 			<artifactId>smartsheet-sdk-java</artifactId>
 			<version>2.146.0</version> <!-- Use the latest version -->
 		</dependency>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.8.8</version> <!-- Replace with the latest version -->
-		</dependency>
 	</dependencies>
 
 	<build>
