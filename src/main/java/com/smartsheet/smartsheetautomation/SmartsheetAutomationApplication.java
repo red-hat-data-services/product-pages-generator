@@ -8,7 +8,8 @@ public class SmartsheetAutomationApplication {
 
 	public static void main(String[] args) throws SmartsheetException {
 		String authToken = System.getenv("ACCESS_TOKEN");
-		UpdateSmartsheetDateCalculation dateCalculation = new UpdateSmartsheetDateCalculation(authToken);
+		String sheetId = System.getenv("SHEET_ID");
+		UpdateSmartsheetDateCalculation dateCalculation = new UpdateSmartsheetDateCalculation(authToken,sheetId);
 		dateCalculation.writeSmartsheetData();
 
 	}

@@ -54,11 +54,11 @@ public class UpdateSmartsheetDateCalculation {
 
     Map<String, String> rowMap = new LinkedHashMap<String, String>();
 
-    public UpdateSmartsheetDateCalculation(String authToken) throws SmartsheetException {
+    public UpdateSmartsheetDateCalculation(String authToken, String id) throws SmartsheetException {
 
         properties = getProperties();
         accessToken = (authToken==null || authToken.equals("")) ? properties.getProperty("accessToken"):authToken;
-        sheetId = Long.parseLong(properties.getProperty("sheetId"));
+        sheetId = Long.parseLong((id==null || id.equals("")) ? properties.getProperty("sheetId"):id);
         smartsheet = new SmartsheetBuilder().setAccessToken(accessToken).build();
         sheet = smartsheet.sheetResources().getSheet(sheetId, null, null, null, null, null, null, null);
         Cells = SmartsheetDateUtil.getRowData(sheet);
@@ -278,7 +278,7 @@ public class UpdateSmartsheetDateCalculation {
                     cell8.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
 
 
-                    futureDate = getDatesWithoutWeekends(futureDate, 6); //getNextFriday(futureDate);
+                    futureDate = getDatesWithoutWeekends(futureDate, 8); //getNextFriday(futureDate);
                     System.out.println(version + EMPTY_SPACE + ERRATA_IN_REL_PREP + futureDate.format(dformatter));
 
 
@@ -387,9 +387,9 @@ public class UpdateSmartsheetDateCalculation {
 
         LocalDate providedDate = LocalDate.parse(formattedDate, formatter);
         long day = ChronoUnit.MONTHS.between(today.withDayOfMonth(1), providedDate.withDayOfMonth(1));//providedDate.getMonth().getValue() - today.getMonth().getValue();
-        if (day > 5L || day == 1 || day == 0) {
+        if (day > 5L || day == 1 || day == 0 || day ==-1) {
             day = 6;
-        } else if (day > 1L && day < 5L) {
+        } else if (day > 1L && day < 3L) {
             day = 1;
         } else {
             day = -1;
