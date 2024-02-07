@@ -9,17 +9,21 @@ Openshift AI Release Plan SmartSheet Automation is created to make planning the 
 - **Data Output**: Writes processed data in provided smartsheet.
 
 ## Installation
-To use this project, follow these steps:
-1. Fork and Clone the repository: `git clone https://github.com/moulalis/smartsheet-automation.git`
-2. Install dependencies: `mvn clean install`
+To use this project, follow these steps:(Assuming you are using linux OS, for other operating system follow OS level installation.)
+1. Install JDK 11 `sudo yum install java-11-openjdk-devel`
+2. Install Maven 3 `sudo yum install maven`
+3. Fork and Clone the repository: `git clone git@github.com:red-hat-data-services/product-pages-generator.git`
+4. `cd product-pages-generator`
+5. Install dependencies: `mvn clean install`
+6. To run Product page API you need to install python3: `sudo dnf install python3` 
 
 ## Configuration
 Before running the project, ensure you have configured the following:
-- API key for SmartSheet API (details in `config.properties`).
+- You need to add API key/access token for SmartSheet API (details in `config.properties`).
 
 ## Usage
 To use this project, run the following commands:
-1. `cd smartsheet-automation`
+1. `cd product-pages-generator`
 2. `java -jar target/smartsheet-automation-0.0.1-SNAPSHOT.jar`
 
 ## Code Structure
@@ -27,6 +31,7 @@ The project structure is as follows:
 - `src/`: Contains the source code.
 - `target/`: Generated output directory.
 - `config.properties`: Configuration file.
+- `python/ProductPageAPI.py` : Is a product page API which will update the smartsheet information to the product page.
 
 ## APIs/External Services Used
 This project uses the SmartSheet API/Java SDK for data retrieval and manipulation.
@@ -45,4 +50,5 @@ Contributions are welcome! Follow these steps to contribute:
 
 
 ## References
-- SmartSheet API Documentation: [link-to-docs](https://docs.google.com/document/d/1APw7ehpiE35ZuIiMq6sLbt0JxROpt0Vn6spN7gSvaKg/edit#heading=h.8jjfikvvcg5u)
+- https://smartsheet.github.io/smartsheet-java-sdk/apidocs/
+- https://github.com/smartsheet-platform/smartsheet-java-sdk
