@@ -14,6 +14,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -168,7 +169,7 @@ public class UpdateSmartsheetDateCalculation {
 
         Map<String, String> dateMap = new LinkedHashMap<String, String>();
         Row parentrow;
-        long numbDays = 0L;
+        int numbDays = 0;
         try {
             // Add 7 days to the current date
             LocalDate futureDate;
@@ -372,29 +373,24 @@ public class UpdateSmartsheetDateCalculation {
         return numbDays;
     }
 
-    private long getDateDifference(String formattedDate, DateTimeFormatter formatter, Properties properties) {
+    private int getDateDifference(String formattedDate, DateTimeFormatter formatter, Properties properties) {
 
-        LocalDate today;//LocalDate.of(2022,12,20);//
-        String year = properties.get("year").toString();
-        String month = properties.get("month").toString();
-        String date = properties.get("date").toString();
+        LocalDate currentDate =  LocalDate.now();//LocalDate.of(2024,02,26);
 
-        if ((year != null && !year.equals("")) && (month != null && !month.equals("")) && (date != null && !date.equals(""))) {
-            today = LocalDate.of(Integer.parseInt(year), Integer.parseInt(month), Integer.parseInt(date));
-        } else {
-            today = LocalDate.now();
-        }
-
+        // Prompt the user to input a date
+        //String dateString = "2024-06-10";//scanner.nextLine();
         LocalDate providedDate = LocalDate.parse(formattedDate, formatter);
-        long day = ChronoUnit.MONTHS.between(today.withDayOfMonth(1), providedDate.withDayOfMonth(1));//providedDate.getMonth().getValue() - today.getMonth().getValue();
-        if (day > 5L || day == 1 || day == 0 || day ==-1) {
-            day = 6;
-        } else if (day > 1L && day < 3L) {
-            day = 1;
-        } else {
-            day = -1;
-        }
-        return day;
+
+        // Calculate the difference in years, months, and days
+        Period period = Period.between(currentDate, providedDate);
+        int yearsDifference = period.getYears();
+        int monthsDifference = period.getMonths();
+        int daysDifference = period.getDays();
+
+        // Combine years, months, and days difference into a single number
+        int totalDifference = 6 - ( yearsDifference * 12 + monthsDifference + (daysDifference > 0 ? 1 : 0));
+
+        return totalDifference;
     }
 
     public LocalDate getNextFriday(LocalDate date) {
