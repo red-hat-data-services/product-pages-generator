@@ -206,7 +206,7 @@ public class UpdateSmartsheetDateCalculation {
                     String CSDate;
 
                     LocalDate localDateq = LocalDate.parse(formattedDate, dformatter);
-                    localDateq = getDatesWithoutWeekends(localDateq, 22);
+                    localDateq = getDatesWithoutWeekends(localDateq, 20);
                     Month month = localDateq.getMonth();
                     int t = quarter;
                     quarter = (month.getValue() - 1) / 3 + 1;
@@ -229,7 +229,7 @@ public class UpdateSmartsheetDateCalculation {
                     //cells.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE),4));
 
 
-                    futureDate = localDateq.plusDays(17);
+                    futureDate = localDateq.plusDays(15);
                     LocalDate nextFriday = getNextFriday(futureDate);
                     System.out.println(version + EMPTY_SPACE + FEATURE_FREEZ + nextFriday.format(dformatter));
 
