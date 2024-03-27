@@ -206,7 +206,7 @@ public class UpdateSmartsheetDateCalculation {
                     String CSDate;
 
                     LocalDate localDateq = LocalDate.parse(formattedDate, dformatter);
-                    localDateq = getDatesWithoutWeekends(localDateq, 30);
+                    localDateq = getDatesWithoutWeekends(localDateq, 22);
                     Month month = localDateq.getMonth();
                     int t = quarter;
                     quarter = (month.getValue() - 1) / 3 + 1;
