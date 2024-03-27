@@ -258,7 +258,7 @@ public class UpdateSmartsheetDateCalculation {
                     cell6.add(addCell(sheet, nextMonday.format(DateTimeFormatter.ISO_DATE), 3));
 
 
-                    futureDate = getDatesWithoutWeekends(nextMonday, 2);
+                    futureDate = getDatesWithoutWeekends(nextMonday, 7);
                     System.out.println(version + " Push to Stage (Cloud Service) " + futureDate.format(dformatter));
 
 
