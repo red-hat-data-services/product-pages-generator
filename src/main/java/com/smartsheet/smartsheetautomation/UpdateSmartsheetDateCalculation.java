@@ -229,7 +229,7 @@ public class UpdateSmartsheetDateCalculation {
                     //cells.add(addCell(sheet, localDateq.format(DateTimeFormatter.ISO_DATE),4));
 
 
-                    futureDate = localDateq.plusDays(15);
+                    futureDate = localDateq.plusDays(17);
                     LocalDate nextFriday = getNextFriday(futureDate);
                     System.out.println(version + EMPTY_SPACE + FEATURE_FREEZ + nextFriday.format(dformatter));
 
