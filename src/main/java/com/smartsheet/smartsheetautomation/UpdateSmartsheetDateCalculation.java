@@ -279,7 +279,7 @@ public class UpdateSmartsheetDateCalculation {
                     cell8.add(addCell(sheet, futureDate.format(DateTimeFormatter.ISO_DATE), 3));
 
 
-                    futureDate = getDatesWithoutWeekends(futureDate, 8); //getNextFriday(futureDate);
+                    futureDate = getDatesWithoutWeekends(futureDate, 2); //getNextFriday(futureDate);
                     System.out.println(version + EMPTY_SPACE + ERRATA_IN_REL_PREP + futureDate.format(dformatter));
 
 
